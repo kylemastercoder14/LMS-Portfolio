@@ -21,6 +21,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Chapter } from "@prisma/client";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
   isFree: z.boolean().default(false),
@@ -35,6 +36,7 @@ const ChapterAccessForm = ({
   courseId: string;
   chapterId: string;
 }) => {
+  const router = useRouter();
   const [isEditing, setIsEditing] = React.useState(false);
   const toggleEdit = () => setIsEditing((prev) => !prev);
   const form = useForm<z.infer<typeof formSchema>>({
@@ -48,9 +50,7 @@ const ChapterAccessForm = ({
     try {
       await createChapterAccess(values.isFree, courseId, chapterId);
       toast.success("Chapter updated successfully");
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      router.refresh();
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong. Please try again.");

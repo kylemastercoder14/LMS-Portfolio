@@ -16,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { updateCourseTitle } from "@/app/actions/course";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
@@ -28,6 +29,7 @@ const TitleForm = ({
   initialData: { title: string };
   courseId: string;
 }) => {
+  const router = useRouter();
   const [isEditing, setIsEditing] = React.useState(false);
   const toggleEdit = () => setIsEditing((prev) => !prev);
   const form = useForm<z.infer<typeof formSchema>>({
@@ -41,9 +43,7 @@ const TitleForm = ({
     try {
       await updateCourseTitle(values.title, courseId);
       toast.success("Course title updated successfully");
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      router.refresh();
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong. Please try again.");

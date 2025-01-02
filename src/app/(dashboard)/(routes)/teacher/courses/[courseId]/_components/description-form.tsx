@@ -18,6 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { Course } from '@prisma/client';
 import { addCourseDescription } from '@/app/actions/course';
+import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
   description: z.string().min(1, { message: "Description is required" }),
@@ -30,6 +31,7 @@ const DescriptionForm = ({
   initialData: Course;
   courseId: string;
 }) => {
+  const router = useRouter();
   const [isEditing, setIsEditing] = React.useState(false);
   const toggleEdit = () => setIsEditing((prev) => !prev);
   const form = useForm<z.infer<typeof formSchema>>({
@@ -43,9 +45,7 @@ const DescriptionForm = ({
     try {
       await addCourseDescription(values.description, courseId);
       toast.success("Course description added successfully");
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      router.refresh();
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong. Please try again.");

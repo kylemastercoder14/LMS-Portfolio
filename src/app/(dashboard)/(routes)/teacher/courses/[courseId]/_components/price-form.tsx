@@ -18,6 +18,7 @@ import { cn, formatPrice } from "@/lib/utils";
 import { Course } from "@prisma/client";
 import { addPriceCategory } from "@/app/actions/course";
 import { Input } from "@/components/ui/input";
+import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
   price: z.coerce.number().min(1, { message: "Price is required" }),
@@ -30,6 +31,7 @@ const PriceForm = ({
   initialData: Course;
   courseId: string;
 }) => {
+  const router = useRouter();
   const [isEditing, setIsEditing] = React.useState(false);
   const toggleEdit = () => setIsEditing((prev) => !prev);
   const form = useForm<z.infer<typeof formSchema>>({
@@ -43,9 +45,7 @@ const PriceForm = ({
     try {
       await addPriceCategory(values.price, courseId);
       toast.success("Course price added successfully");
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      router.refresh();
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong. Please try again.");

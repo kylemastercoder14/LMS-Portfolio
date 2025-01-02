@@ -19,6 +19,7 @@ import { Chapter, Course } from "@prisma/client";
 import { Input } from "@/components/ui/input";
 import { createChapter, reorderChapters } from "@/app/actions/chapter";
 import ChaptersList from "./chapters-list";
+import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
@@ -31,6 +32,7 @@ const ChaptersForm = ({
   initialData: Course & { chapters: Chapter[] };
   courseId: string;
 }) => {
+  const router = useRouter();
   const [isCreating, setIsCreating] = React.useState(false);
   const [isUpdating, setIsUpdating] = React.useState(false);
   const toggleCreating = () => setIsCreating((prev) => !prev);
@@ -58,9 +60,7 @@ const ChaptersForm = ({
       setIsUpdating(true);
       await reorderChapters(updateData, courseId);
       toast.success("Chapters reordered successfully");
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      router.refresh();
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong. Please try again.");

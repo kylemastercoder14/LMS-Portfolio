@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 import { ImageIcon, PencilIcon, PlusCircle, VideoIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Chapter, MuxData } from "@prisma/client";
-import Image from "next/image";
+import MuxPlayer from "@mux/mux-player-react";
 import FileUpload from "@/components/file-upload";
-import { createChapterVideo } from '@/app/actions/chapter';
+import { createChapterVideo } from "@/app/actions/chapter";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   videoUrl: z.string().min(1, { message: "Image is required" }),
@@ -24,15 +25,22 @@ const ChapterVideoForm = ({
   courseId: string;
   chapterId: string;
 }) => {
+  const router = useRouter();
   const [isEditing, setIsEditing] = React.useState(false);
   const toggleEdit = () => setIsEditing((prev) => !prev);
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      await createChapterVideo(values.videoUrl, courseId, chapterId);
-      toast.success("Chapter updated successfully");
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      const res = await createChapterVideo(
+        values.videoUrl,
+        courseId,
+        chapterId
+      );
+      if (res.success) {
+        toast.success(res.success);
+        router.refresh();
+      } else {
+        toast.error(res.error);
+      }
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong. Please try again.");
@@ -65,7 +73,7 @@ const ChapterVideoForm = ({
           </div>
         ) : (
           <div className="relative aspect-video mt-2">
-            Video Uploaded
+            <MuxPlayer playbackId={initialData?.muxData?.playbackId || ""} />
           </div>
         ))}
       {isEditing && (
@@ -84,8 +92,9 @@ const ChapterVideoForm = ({
         </div>
       )}
       {initialData.videoUrl && !isEditing && (
-        <div className='text-xs text-muted-foreground mt-2'>
-          Videos can take a few minutes to process. Refresh the page if the video does not appear.
+        <div className="text-xs text-muted-foreground mt-2">
+          Videos can take a few minutes to process. Refresh the page if the
+          video does not appear.
         </div>
       )}
     </div>

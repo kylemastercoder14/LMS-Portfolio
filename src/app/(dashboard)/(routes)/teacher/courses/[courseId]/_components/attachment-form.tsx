@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Attachment, Course } from "@prisma/client";
 import Image from "next/image";
 import FileUpload from "@/components/file-upload";
+import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
   url: z.string().min(1, { message: "Attachment is required" }),
@@ -23,15 +24,14 @@ const AttachmentForm = ({
   courseId: string;
 }) => {
   const [isEditing, setIsEditing] = React.useState(false);
+  const router = useRouter();
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
   const toggleEdit = () => setIsEditing((prev) => !prev);
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       await addCourseAttachment(values.url, courseId);
       toast.success("Course attachment added successfully");
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      router.refresh();
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong. Please try again.");
@@ -42,9 +42,7 @@ const AttachmentForm = ({
       setDeletingId(id);
       await deleteCourseAttachment(id, courseId);
       toast.success("Course attachment deleted successfully");
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      router.refresh();
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong. Please try again.");

@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { Course } from "@prisma/client";
 import { addCourseCategory } from "@/app/actions/course";
 import Combobox from "@/components/ui/combobox";
+import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
   categoryId: z.string().min(1, { message: "Category is required" }),
@@ -33,6 +34,7 @@ const CategoryForm = ({
   options: { value: string; label: string }[];
 }) => {
   const [isEditing, setIsEditing] = React.useState(false);
+  const router = useRouter();
   const toggleEdit = () => setIsEditing((prev) => !prev);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -45,9 +47,7 @@ const CategoryForm = ({
     try {
       await addCourseCategory(values.categoryId, courseId);
       toast.success("Course category added successfully");
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      router.refresh();
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong. Please try again.");

@@ -2,6 +2,12 @@
 
 import { db } from "@/lib/db";
 import { auth } from "@clerk/nextjs/server";
+import Mux from "@mux/mux-node";
+
+const mux = new Mux({
+  tokenId: process.env.MUX_TOKEN_ID,
+  tokenSecret: process.env.MUX_TOKEN_SECRET,
+});
 
 export const createCourse = async (title: string) => {
   const { userId } = await auth();
@@ -234,6 +240,143 @@ export const updateCourseTitle = async (title: string, courseId: string) => {
     });
 
     return { id: response.id };
+  } catch (error) {
+    console.error(error);
+    return { error: "Something went wrong. Please try again." };
+  }
+};
+
+export const deleteCourse = async (courseId: string) => {
+  const { userId } = await auth();
+
+  if (!userId) {
+    return { error: "You must be logged in to delete a course" };
+  }
+
+  if (!courseId) {
+    return { error: "Course ID is required" };
+  }
+
+  try {
+    const course = await db.course.findUnique({
+      where: { id: courseId },
+      include: {
+        chapters: {
+          include: {
+            muxData: true,
+          },
+        },
+      },
+    });
+
+    if (!course) {
+      return { error: "Course not found" };
+    }
+
+    for (const chapter of course.chapters) {
+      if (chapter.muxData) {
+        await mux.video.assets.delete(chapter.muxData.assetId);
+      }
+    }
+
+    await db.course.delete({
+      where: { id: courseId },
+    });
+
+    return { success: "Course deleted successfully" };
+  } catch (error) {
+    console.error(error);
+    return { error: "Something went wrong. Please try again." };
+  }
+};
+
+export const publishCourse = async (courseId: string) => {
+  const { userId } = await auth();
+
+  if (!userId) {
+    return { error: "You must be logged in to publish a course" };
+  }
+
+  if (!courseId) {
+    return { error: "Course ID is required" };
+  }
+
+  try {
+    const course = await db.course.findUnique({
+      where: { id: courseId, userId },
+      include: {
+        chapters: {
+          include: {
+            muxData: true,
+          },
+        },
+      },
+    });
+
+    if (!course) {
+      return { error: "Course not found" };
+    }
+
+    const hasPublishedChapter = course.chapters.some(
+      (chapter) => chapter.isPublished
+    );
+
+    if (
+      !course.title ||
+      !course.description ||
+      !course.categoryId ||
+      !course.imageUrl ||
+      !course.price ||
+      !hasPublishedChapter
+    ) {
+      return {
+        error:
+          "Please complete all the required fields before publishing the course",
+      };
+    }
+
+    await db.course.update({
+      data: {
+        isPublished: true,
+      },
+      where: { id: courseId, userId },
+    });
+
+    return { success: "Course published successfully" };
+  } catch (error) {
+    console.error(error);
+    return { error: "Something went wrong. Please try again." };
+  }
+};
+
+export const unpublishCourse = async (courseId: string) => {
+  const { userId } = await auth();
+
+  if (!userId) {
+    return { error: "You must be logged in to publish a course" };
+  }
+
+  if (!courseId) {
+    return { error: "Course ID is required" };
+  }
+
+  try {
+    const course = await db.course.findUnique({
+      where: { id: courseId, userId },
+    });
+
+    if (!course) {
+      return { error: "Course not found" };
+    }
+
+    await db.course.update({
+      data: {
+        isPublished: false,
+      },
+      where: { id: courseId, userId },
+    });
+
+    return { success: "Course unpublished successfully" };
   } catch (error) {
     console.error(error);
     return { error: "Something went wrong. Please try again." };

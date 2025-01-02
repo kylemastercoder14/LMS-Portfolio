@@ -2,7 +2,7 @@ import React from 'react'
 
 const Logo = () => {
   return (
-	<div className='font-black font-mono'>
+	<div className=''>
 	  kylemastercoder <span className='text-sky-700'>{"</>"}</span>
 	</div>
   )

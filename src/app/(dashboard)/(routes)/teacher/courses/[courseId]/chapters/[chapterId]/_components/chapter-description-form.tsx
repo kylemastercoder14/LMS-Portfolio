@@ -18,6 +18,7 @@ import { createChapterDescription } from "@/app/actions/chapter";
 import Editor from "@/components/editor";
 import { cn } from "@/lib/utils";
 import Preview from "@/components/preview";
+import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
   description: z.string().min(1, { message: "Description is required" }),
@@ -32,6 +33,7 @@ const ChapterDescriptionForm = ({
   courseId: string;
   chapterId: string;
 }) => {
+  const router = useRouter();
   const [isEditing, setIsEditing] = React.useState(false);
   const toggleEdit = () => setIsEditing((prev) => !prev);
   const form = useForm<z.infer<typeof formSchema>>({
@@ -45,9 +47,7 @@ const ChapterDescriptionForm = ({
     try {
       await createChapterDescription(values.description, courseId, chapterId);
       toast.success("Chapter updated successfully");
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      router.refresh();
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong. Please try again.");

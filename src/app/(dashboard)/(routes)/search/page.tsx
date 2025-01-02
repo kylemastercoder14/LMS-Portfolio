@@ -1,11 +1,18 @@
-import React from 'react'
+import React from "react";
+import { db } from "@/lib/db";
+import Categories from "./categories";
 
-const Search = () => {
+const Search = async () => {
+  const categories = await db.category.findMany({
+    orderBy: {
+      name: "asc",
+    },
+  });
   return (
-	<div>
-	  Search
-	</div>
-  )
-}
+    <div className="p-6">
+      <Categories items={categories} />
+    </div>
+  );
+};
 
-export default Search
+export default Search;

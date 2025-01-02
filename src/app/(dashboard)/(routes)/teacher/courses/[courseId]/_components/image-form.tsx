@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Course } from "@prisma/client";
 import Image from "next/image";
 import FileUpload from "@/components/file-upload";
+import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
   imageUrl: z.string().min(1, { message: "Image is required" }),
@@ -22,15 +23,14 @@ const ImageForm = ({
   initialData: Course;
   courseId: string;
 }) => {
+  const router = useRouter();
   const [isEditing, setIsEditing] = React.useState(false);
   const toggleEdit = () => setIsEditing((prev) => !prev);
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       await addCourseImage(values.imageUrl, courseId);
       toast.success("Course image added successfully");
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      router.refresh();
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong. Please try again.");
